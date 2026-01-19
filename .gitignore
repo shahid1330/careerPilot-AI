@@ -1,0 +1,285 @@
+# ==========================================
+# CareerPilot AI - Root .gitignore
+# ==========================================
+
+# ============ PYTHON / BACKEND ============
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+backend/venv/
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+backend/lib/
+backend/lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ============ NODE.JS / FRONTEND ============
+# Dependencies
+node_modules/
+/.pnp
+.pnp.*
+.pnp.js
+
+# Package manager files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js
+/.next/
+/out/
+.next
+next-env.d.ts
+
+# Production
+/build
+/dist
+
+# Testing
+/coverage
+.nyc_output
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# ============ ENVIRONMENT & SECRETS ============
+# Environment variables (CRITICAL - DO NOT COMMIT)
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# API Keys & Secrets
+*.key
+*.pem
+secrets/
+credentials/
+
+# ============ DATABASE ============
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL
+*.dump
+*.sql.gz
+
+# Database backups
+backups/
+*.backup
+
+# ============ IDE & EDITORS ============
+# VSCode
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ============ OPERATING SYSTEM ============
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============ LOGS ============
+# Application logs
+*.log
+logs/
+*.log.*
+log/
+
+# ============ TEMPORARY FILES ============
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*.swp
+*.swo
+*~
+
+# Cache
+.cache/
+*.cache
+
+# ============ PROJECT SPECIFIC ============
+# Alembic
+alembic/versions/*.pyc
+
+# Documentation (optional - comment out if you want to commit)
+# docs/_build/
+
+# Test files
+test-results/
+playwright-report/
+
+# User uploads (if any)
+uploads/
+static/uploads/
+media/
+
+# ============ MISCELLANEOUS ============
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Sentry
+.sentryclirc

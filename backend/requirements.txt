@@ -1,0 +1,27 @@
+--only-binary=:all:
+
+# FastAPI Core
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.4.2
+pydantic-settings==2.0.3
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
+# Environment
+python-dotenv==1.0.0
+
+# AI/LLM (Phase 3)
+httpx==0.26.0
+
+# Additional utilities
+email-validator==2.1.0
