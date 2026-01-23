@@ -36,7 +36,6 @@ export default function DailyPlanPage() {
     if (storedDuration) setDurationDays(storedDuration);
 
     loadPlans();
-    loadCompletedDays();
   }, []);
 
   const loadPlans = async () => {
@@ -48,15 +47,16 @@ export default function DailyPlanPage() {
       // Clean up orphaned completion data
       cleanupCompletionData(plans);
       const roleIds = new Set(plans.map(p => p.user_role_id!));
-      setExpandedRoles(roleIds);
-    } catch (err) {
+      setExpandedRoles(roleIds);      
+      // Load completed days AFTER plans are loaded
+      loadCompletedDaysForPlans(plans);    } catch (err) {
       console.error('Failed to load plans:', err);
     } finally {
       setLoadingPlans(false);
     }
   };
 
-  const loadCompletedDays = () => {
+  const loadCompletedDaysForPlans = (plans: any[]) => {
     const saved = localStorage.getItem('completed_daily_plans');
     if (saved) {
       try {
@@ -64,7 +64,7 @@ export default function DailyPlanPage() {
         const completed: Record<number, Set<number>> = {};
         
         // Only load completion data for roles that have daily plans
-        const activeRoleIds = new Set(allDailyPlans.map(plan => plan.user_role_id!));
+        const activeRoleIds = new Set(plans.map((plan: any) => plan.user_role_id!));
         Object.keys(parsed).forEach(roleId => {
           const roleIdNum = parseInt(roleId);
           if (activeRoleIds.has(roleIdNum)) {
@@ -138,12 +138,26 @@ export default function DailyPlanPage() {
     try {
       await aiService.deleteDailyPlan(userRoleId);
       await loadPlans();
+      
+      // Clear completion data for this role
       setCompletedDays(prev => {
         const newCompleted = { ...prev };
         delete newCompleted[userRoleId];
         saveCompletedDays(newCompleted);
         return newCompleted;
       });
+      
+      // Remove associated roadmap from localStorage
+      const savedRoadmaps = localStorage.getItem('user_roadmaps');
+      if (savedRoadmaps) {
+        try {
+          const roadmaps = JSON.parse(savedRoadmaps);
+          const updatedRoadmaps = roadmaps.filter((rm: any) => rm.user_role_id !== userRoleId);
+          localStorage.setItem('user_roadmaps', JSON.stringify(updatedRoadmaps));
+        } catch (e) {
+          console.error('Failed to remove roadmap from storage:', e);
+        }
+      }
     } catch (err: any) {
       alert(`Failed to delete: ${err.message}`);
     } finally {

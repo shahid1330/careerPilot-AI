@@ -308,3 +308,62 @@ async def delete_daily_plan(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete daily plan: {str(e)}"
         )
+
+
+@router.delete(
+    "/roadmaps/{user_role_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete Roadmap",
+    description="Delete a roadmap and associated user role"
+)
+async def delete_roadmap(
+    user_role_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete a roadmap and associated user role
+    
+    This will permanently delete:
+    - The roadmap
+    - The user role entry
+    - All daily plans for that role
+    """
+    try:
+        # Check if user owns this user_role
+        user_role = db.query(UserRole).filter(
+            UserRole.id == user_role_id,
+            UserRole.user_id == current_user.id
+        ).first()
+        
+        if not user_role:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User role not found or does not belong to you"
+            )
+        
+        role_name = user_role.role_name
+        
+        # Delete daily plans
+        db.query(DailyPlan).filter(DailyPlan.user_role_id == user_role_id).delete()
+        
+        # Delete roadmap
+        db.query(Roadmap).filter(Roadmap.user_role_id == user_role_id).delete()
+        
+        # Delete user role
+        db.delete(user_role)
+        db.commit()
+        
+        return {
+            "message": f"Successfully deleted roadmap for {role_name}",
+            "deleted_role": role_name
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete roadmap: {str(e)}"
+        )

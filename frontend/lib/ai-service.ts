@@ -50,6 +50,10 @@ export const aiService = {
     return response.data;
   },
 
+  async deleteRoadmap(userRoleId: number): Promise<void> {
+    await api.delete(`/ai/roadmaps/${userRoleId}`);
+  },
+
   async generateDailyPlan(data: GenerateDailyPlanRequest): Promise<GenerateDailyPlanResponse> {
     const response = await api.post<GenerateDailyPlanResponse>('/ai/generate-daily-plan', data);
     return response.data;

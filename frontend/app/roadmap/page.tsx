@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { aiService, GenerateRoadmapResponse } from '@/lib/ai-service';
-import { Target, Loader2, Sparkles, CheckCircle2, ArrowRight, BookOpen, Lightbulb, TrendingUp, Plus, List } from 'lucide-react';
+import { Target, Loader2, Sparkles, CheckCircle2, ArrowRight, BookOpen, Lightbulb, TrendingUp, Plus, List, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -25,13 +25,22 @@ interface SavedRoadmap {
 export default function RoadmapPage() {
   const router = useRouter();
   const [roleName, setRoleName] = useState('');
-  const [durationDays, setDurationDays] = useState('90');
+  const [durationDays, setDurationDays] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [roadmap, setRoadmap] = useState<GenerateRoadmapResponse | null>(null);
   const [parsedRoadmap, setParsedRoadmap] = useState<any>(null);
   const [savedRoadmaps, setSavedRoadmaps] = useState<SavedRoadmap[]>([]);
   const [showNewRoadmapForm, setShowNewRoadmapForm] = useState(true);
+  
+  // New states for skills customization workflow
+  const [aiSkills, setAiSkills] = useState<string[]>([]);
+  const [userSkills, setUserSkills] = useState<string[]>([]);
+  const [newSkill, setNewSkill] = useState('');
+  const [showSkillsStep, setShowSkillsStep] = useState(false);
+  const [showLearningPath, setShowLearningPath] = useState(false);
+  const [learningPath, setLearningPath] = useState<any>(null);
+  const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
     // Load saved roadmaps from localStorage
@@ -78,6 +87,53 @@ export default function RoadmapPage() {
     }
     
     setShowNewRoadmapForm(false);
+  };
+
+  const deleteSavedRoadmap = async (saved: SavedRoadmap, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const confirmed = window.confirm(
+      `Delete roadmap for "${saved.role_name}"?\n\nThis will also delete any associated daily plans and progress.`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      // Delete from backend if it has a user_role_id
+      if (saved.user_role_id) {
+        try {
+          await aiService.deleteRoadmap(saved.user_role_id);
+        } catch (err) {
+          console.error('Failed to delete from backend:', err);
+        }
+      }
+      
+      // Remove from localStorage
+      const updated = savedRoadmaps.filter(rm => rm.id !== saved.id);
+      setSavedRoadmaps(updated);
+      localStorage.setItem('user_roadmaps', JSON.stringify(updated));
+      
+      // Clear completion data for this role
+      const savedCompleted = localStorage.getItem('completed_daily_plans');
+      if (savedCompleted) {
+        try {
+          const parsed = JSON.parse(savedCompleted);
+          delete parsed[saved.user_role_id];
+          localStorage.setItem('completed_daily_plans', JSON.stringify(parsed));
+        } catch (e) {
+          console.error('Failed to clear completion data:', e);
+        }
+      }
+      
+      // If currently viewing this roadmap, clear it
+      if (roadmap?.id === saved.id) {
+        setRoadmap(null);
+        setParsedRoadmap(null);
+        setShowNewRoadmapForm(true);
+      }
+    } catch (err: any) {
+      alert(`Failed to delete: ${err.message}`);
+    }
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -133,12 +189,21 @@ export default function RoadmapPage() {
       });
       setRoadmap(result);
       
-      // Save to localStorage for multi-role support
-      saveRoadmapToStorage(result, roleName, durationDays);
-      
-      // Parse the JSON roadmap text
+      // Parse the JSON roadmap text to extract required skills
       try {
         const parsed = JSON.parse(result.roadmap_text);
+        
+        // Extract required skills from the roadmap
+        const skills = parsed.required_skills || parsed.skills || [];
+        setAiSkills(skills);
+        setUserSkills([]);
+        
+        // Show skills customization step
+        setShowSkillsStep(true);
+        setShowNewRoadmapForm(false);
+        setShowLearningPath(false);
+        
+        // Don't save yet - wait for user to finalize skills
         setParsedRoadmap(parsed);
       } catch (parseError) {
         console.error('Failed to parse roadmap JSON:', parseError);
@@ -148,6 +213,54 @@ export default function RoadmapPage() {
       setShowNewRoadmapForm(false);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to generate roadmap. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addUserSkill = () => {
+    if (newSkill.trim() && !aiSkills.includes(newSkill.trim()) && !userSkills.includes(newSkill.trim())) {
+      setUserSkills([...userSkills, newSkill.trim()]);
+      setNewSkill('');
+    }
+  };
+
+  const removeUserSkill = (skill: string) => {
+    setUserSkills(userSkills.filter(s => s !== skill));
+  };
+
+  const handleGenerateLearningPath = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      // Combine AI skills and user skills
+      const allSkills = [...aiSkills, ...userSkills];
+      
+      // Update the parsed roadmap with new skills
+      const updatedRoadmap = {
+        ...parsedRoadmap,
+        required_skills: allSkills
+      };
+      
+      // Save updated roadmap
+      if (roadmap) {
+        const updatedRoadmapText = JSON.stringify(updatedRoadmap, null, 2);
+        roadmap.roadmap_text = updatedRoadmapText;
+        setParsedRoadmap(updatedRoadmap);
+        
+        // Save to localStorage
+        saveRoadmapToStorage(roadmap, roleName, durationDays);
+      }
+      
+      // Show learning path and projects
+      setLearningPath(updatedRoadmap.learning_path || updatedRoadmap);
+      setProjects(updatedRoadmap.projects || []);
+      setShowLearningPath(true);
+      setShowSkillsStep(false);
+      
+    } catch (err: any) {
+      setError('Failed to generate learning path. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -181,14 +294,21 @@ export default function RoadmapPage() {
               <p className="text-slate-600">Manage multiple learning paths for different roles</p>
             </div>
           </div>
-          {!showNewRoadmapForm && savedRoadmaps.length > 0 && (
+          {!showNewRoadmapForm && !showSkillsStep && savedRoadmaps.length > 0 && (
             <Button
               onClick={() => {
                 setShowNewRoadmapForm(true);
+                setShowSkillsStep(false);
+                setShowLearningPath(false);
                 setRoadmap(null);
                 setParsedRoadmap(null);
                 setRoleName('');
-                setDurationDays('90');
+                setDurationDays('');
+                setAiSkills([]);
+                setUserSkills([]);
+                setNewSkill('');
+                setLearningPath(null);
+                setProjects([]);
               }}
               variant="outline"
               className="gap-2"
@@ -209,21 +329,33 @@ export default function RoadmapPage() {
             </div>
             <div className="space-y-2">
               {savedRoadmaps.map((saved) => (
-                <button
+                <div
                   key={saved.id}
-                  onClick={() => loadSavedRoadmap(saved)}
-                  className="w-full text-left p-4 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:shadow-md transition-all"
+                  className="w-full p-4 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-slate-900">{saved.role_name}</h4>
-                      <p className="text-sm text-slate-600">
-                        {saved.duration_days} days • Generated on {new Date(saved.generated_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-blue-600" />
+                    <button
+                      onClick={() => loadSavedRoadmap(saved)}
+                      className="flex-1 text-left flex items-center justify-between"
+                    >
+                      <div>
+                        <h4 className="font-semibold text-slate-900">{saved.role_name}</h4>
+                        <p className="text-sm text-slate-600">
+                          {saved.duration_days} days • Generated on {new Date(saved.generated_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-blue-600" />
+                    </button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => deleteSavedRoadmap(saved, e)}
+                      className="ml-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </Card>
@@ -292,8 +424,114 @@ export default function RoadmapPage() {
         </Card>
         )}
 
+        {/* Skills Customization Step */}
+        {showSkillsStep && !loading && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="p-8 border-2 border-purple-200 bg-gradient-to-br from-white to-purple-50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Target className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">Customize Required Skills</h2>
+                  <p className="text-slate-600">AI suggested these skills - add your own or proceed to generate learning path</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* AI Generated Skills */}
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    AI Suggested Skills
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {aiSkills.map((skill, i) => (
+                      <Badge key={i} className="bg-purple-100 text-purple-700 border-purple-200 text-sm px-3 py-1">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* User Added Skills */}
+                {userSkills.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                      <Plus className="h-4 w-4 text-blue-600" />
+                      Your Added Skills
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {userSkills.map((skill, i) => (
+                        <Badge key={i} className="bg-blue-100 text-blue-700 border-blue-200 text-sm px-3 py-1 flex items-center gap-2">
+                          {skill}
+                          <button
+                            onClick={() => removeUserSkill(skill)}
+                            className="hover:text-red-600 ml-1"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Skill Input */}
+                <div>
+                  <Label htmlFor="newSkill" className="mb-2 block">Add Your Own Skill</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="newSkill"
+                      type="text"
+                      placeholder="e.g., TypeScript, Docker, AWS..."
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addUserSkill();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button onClick={addUserSkill} type="button" variant="outline">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">Press Enter or click Add to include the skill</p>
+                </div>
+
+                {/* Generate Learning Path Button */}
+                <Button
+                  onClick={handleGenerateLearningPath}
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="mr-2 h-5 w-5" />
+                      Generate Learning Path & Projects
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Generated Roadmap */}
-        {roadmap && !showNewRoadmapForm && (
+        {roadmap && showLearningPath && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
