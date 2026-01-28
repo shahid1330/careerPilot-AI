@@ -17,7 +17,7 @@
 ### 🎯 Key Features
 
 - **🗺️ AI-Generated Career Roadmaps** - Get personalized career paths based on your target role and timeline
-- **📅 Daily Learning Plans** - Break down your roadmap into 60 days of actionable tasks
+- **📅 Daily Learning Plans** - Break down your roadmap into 60 days or according to your choice of actionable tasks
 - **📚 Interactive Learning** - AI-powered topic explanations with curated resources
 - **📊 Progress Tracking** - Monitor your learning journey with detailed statistics and streaks
 - **👤 User Profiles** - Manage your account and track your achievements
