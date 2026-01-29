@@ -84,9 +84,6 @@ CORS_ORIGINS=http://localhost:3000
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
-
-> **Note:** See `.env.example` files in both directories for reference.
-
 ---
 
 ## 🔧 Installation & Setup
