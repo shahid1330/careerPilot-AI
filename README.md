@@ -10,7 +10,7 @@
 
 ---
 
-## 📖 Overview
+## 📖 Overview of the Project
 
 **CareerPilot AI** is a full-stack AI-powered platform that helps users plan their career journey by generating personalized learning roadmaps, daily action plans, and interactive learning resources. Built with modern technologies and powered by Groq's LLM, it provides intelligent career guidance tailored to individual goals.
 
