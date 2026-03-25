@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     LLM_TIMEOUT: int = 30  # seconds
     LLM_MAX_TOKENS: int = 2048
     
+    # Groq Configuration (Phase 6)
+    GROQ_API_KEY: Optional[str] = None
+    
     # CORS Settings (production-safe with environment variable support)
     CORS_ORIGINS: List[str] = []
     

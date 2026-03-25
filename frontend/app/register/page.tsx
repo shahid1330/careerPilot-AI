@@ -78,7 +78,7 @@ export default function RegisterPage() {
                 id="full_name"
                 name="full_name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Your name"
                 value={formData.full_name}
                 onChange={handleChange}
                 required
@@ -93,7 +93,7 @@ export default function RegisterPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="your email"
                 value={formData.email}
                 onChange={handleChange}
                 required

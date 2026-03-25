@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Sparkles, LayoutDashboard, Map, Calendar, BookOpen, User, LogOut, Loader2 } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Map, Calendar, BookOpen, User, LogOut, Loader2, ClipboardCheck, TrendingUp, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -39,6 +39,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/roadmap', label: 'Roadmap', icon: Map },
     { href: '/daily-plan', label: 'Daily Plan', icon: Calendar },
     { href: '/learn', label: 'Learn', icon: BookOpen },
+    { href: '/mock-test', label: 'Mock Tests', icon: ClipboardCheck },
+    { href: '/performance', label: 'Performance', icon: TrendingUp },
+    { href: '/career-intelligence', label: 'Career Intelligence', icon: Brain },
     { href: '/profile', label: 'Profile', icon: User },
   ];
 

@@ -25,11 +25,31 @@ export default function DashboardPage() {
     streak: 0
   });
   const [recentActivity, setRecentActivity] = useState<GenerateDailyPlanResponse[]>([]);
+  const [dailyQuote, setDailyQuote] = useState<{ quote_text: string; author: string; category: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
+    loadDailyQuote();
   }, []);
+
+  const loadDailyQuote = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('http://localhost:8000/api/mock-tests/daily-quote', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDailyQuote(data);
+      }
+    } catch (error) {
+      console.error('Failed to load daily quote:', error);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -108,6 +128,27 @@ export default function DashboardPage() {
       icon: Calendar,
       href: '/daily-plan',
       gradient: 'from-purple-600 to-pink-600',
+    },
+    {
+      title: 'Mock Tests',
+      description: 'Take smart personalized mock tests',
+      icon: Award,
+      href: '/mock-test',
+      gradient: 'from-green-600 to-emerald-600',
+    },
+    {
+      title: 'Performance',
+      description: 'Track your progress and analytics',
+      icon: Activity,
+      href: '/performance',
+      gradient: 'from-orange-600 to-red-600',
+    },
+    {
+      title: 'Career Intelligence',
+      description: 'AI-powered career insights',
+      icon: Zap,
+      href: '/career-intelligence',
+      gradient: 'from-pink-600 to-purple-600',
     },
     {
       title: 'Learn Topics',
@@ -213,6 +254,28 @@ export default function DashboardPage() {
             <p className="text-sm text-slate-600">
               {stats.completedDays} of {stats.totalDays} days completed across all roadmaps
             </p>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Daily Quote */}
+      {dailyQuote && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-lg italic text-gray-700 mb-2">"{dailyQuote.quote_text}"</p>
+                <p className="text-sm font-semibold text-purple-700">— {dailyQuote.author}</p>
+                <Badge variant="outline" className="mt-2">{dailyQuote.category}</Badge>
+              </div>
+            </div>
           </Card>
         </motion.div>
       )}

@@ -6,7 +6,7 @@ FastAPI application with authentication and database integration
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import auth, ai
+from app.routers import auth, ai, mock_tests, performance, career_intelligence, code_execution
 
 # Create FastAPI application instance
 app = FastAPI(
@@ -29,6 +29,16 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)  # Phase 2: Authentication
 app.include_router(ai.router)    # Phase 3: AI/LLM Integration
+
+# Phase 6A: Mock Tests & Performance
+app.include_router(mock_tests.router, prefix="/api")
+app.include_router(performance.router, prefix="/api")
+
+# Phase 6B: Career Intelligence
+app.include_router(career_intelligence.router, prefix="/api")
+
+# Code Execution Engine
+app.include_router(code_execution.router)
 
 
 @app.get("/", tags=["Root"])
@@ -54,3 +64,14 @@ def health_check():
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION
     }
+
+
+# Run the application if executed directly
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=True
+    )

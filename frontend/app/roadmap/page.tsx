@@ -67,6 +67,10 @@ export default function RoadmapPage() {
     const updated = [...savedRoadmaps, newRoadmap];
     setSavedRoadmaps(updated);
     localStorage.setItem('user_roadmaps', JSON.stringify(updated));
+    // Store current user_role_id for mock test generation
+    if (roadmapData.user_role_id) {
+      localStorage.setItem('currentUserRoleId', roadmapData.user_role_id.toString());
+    }
   };
 
   const loadSavedRoadmap = (saved: SavedRoadmap) => {
@@ -84,6 +88,11 @@ export default function RoadmapPage() {
       setParsedRoadmap(parsed);
     } catch (e) {
       setParsedRoadmap(null);
+    }
+    
+    // Store current user_role_id for mock test generation
+    if (saved.user_role_id) {
+      localStorage.setItem('currentUserRoleId', saved.user_role_id.toString());
     }
     
     setShowNewRoadmapForm(false);

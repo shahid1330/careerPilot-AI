@@ -10,6 +10,10 @@ from alembic import context
 import sys
 import os
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Add parent directory to path to import app modules
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -20,6 +24,16 @@ from app.models.user import User, UserRole
 from app.models.roadmap import Roadmap, DailyPlan, TopicProgress
 from app.models.test import MockTest, TestResult
 from app.models.interview import InterviewSession, InterviewFeedback
+
+# Phase 6A & 6B: Import new models
+from app.models.mock_test_v2 import (
+    MockTestV2, MockTestQuestion, MockTestAttempt,
+    MockTestSectionScore, CodingSubmission, UserPerformanceMetrics, DailyQuote
+)
+from app.models.career_intelligence import (
+    CareerDNAProfile, SkillGraph, CareerForecast,
+    AICoachingSession, LearningVelocity
+)
 
 # Get Alembic config object
 config = context.config
@@ -63,19 +77,16 @@ def run_migrations_online():
     Run migrations in 'online' mode.
     
     Create an Engine and associate a connection with the context.
-    Uses DATABASE_URL directly from environment to avoid config parsing issues.
+    Uses DATABASE_URL constructed from env variables.
     """
-    # Get DATABASE_URL from environment variable
-    database_url = os.getenv("DATABASE_URL")
+    # Construct DATABASE_URL from .env variables
+    db_host = os.getenv("DB_HOST", "localhost")
+    db_port = os.getenv("DB_PORT", "5432")
+    db_name = os.getenv("DB_NAME", "careerpilot_ai")
+    db_user = os.getenv("DB_USER", "postgres")
+    db_password = os.getenv("DB_PASSWORD", "postgres")
     
-    if not database_url:
-        database_url = config.get_main_option("sqlalchemy.url")
-    
-    if not database_url:
-        raise ValueError(
-            "No DATABASE_URL found. Set DATABASE_URL environment variable "
-            "or configure sqlalchemy.url in alembic.ini"
-        )
+    database_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
     
     # Create engine directly with DATABASE_URL
     connectable = create_engine(
